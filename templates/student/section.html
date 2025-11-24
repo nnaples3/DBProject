@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Schedule</title>
+</head>
+<body>
+    <h1>Results for section info {{ sec_id }}</h1>
+    <br>
+
+    {% if section_info %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Course ID</th>
+            <th>Section #</th>
+            <th>Semester</th>
+            <th>Year</th>
+            <th>Building</th>
+            <th>room_number</th>
+            <th>time_slot_id</th>
+        </tr>
+
+        {% for row in section_info %}
+        <tr>
+            <td>{{ course_id }}</td>
+            <td>{{ sec_id }}</td>
+            <td>{{ semester }}</td>
+            <td>{{ year }}</td>
+            <td>{{ row.building }}</td>
+            <td>{{ row.room_number }}</td>
+            <td>{{ row.time_slot_id }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No section data found</p>
+    {% endif %}
+
+    <br>
+
+</body>
+</html>

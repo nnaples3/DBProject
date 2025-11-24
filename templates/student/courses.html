@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Schedule</title>
+</head>
+<body>
+    <h1>Schedule for Student {{ student_id }}</h1>
+
+    <!-- Year Filter Form -->
+    <form method="POST">
+        <label>Filter by Semester:</label>
+        <select name="semester" onchange="this.form.submit()">
+            <option value="all">All Semesters</option>
+
+            {% for s in semesters %}
+            <option value="{{ s.semester }}"
+                {% if selected_semester == s.semester|string %}
+                    selected
+                {% endif %}
+            >
+                {{ s.semester }}
+            </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <br>
+
+    {% if semester_rows %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>ID</th>
+            <th>Course ID</th>
+            <th>Section #</th>
+            <th>Semester</th>
+            <th>Year</th>
+            <th>Grade</th>
+        </tr>
+
+        {% for row in semester_rows %}
+        <tr>
+            <td>{{ row.ID }}</td>
+            <td>{{ row.course_id }}</td>
+            <td>
+                <a href="/student-portal/section?course_id={{ row.course_id }}&sec_id={{ row.sec_id }}&semester={{ row.semester }}&year={{ row.year }}">
+                
+                {{ row.sec_id }}
+            </td>
+            <td>{{ row.semester }}</td>
+            <td>{{ row.year }}</td>
+            <td>{{ row.grade }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No course data found for this student.</p>
+    {% endif %}
+
+    <br>
+
+</body>
+</html>
