@@ -7,3 +7,7 @@ Requirements:
 To start:
     python app.py
 
+XAMPP:
+    Start Apache/MYSQL
+    Create database "university"
+    import queries.sql
