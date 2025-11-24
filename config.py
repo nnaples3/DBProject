@@ -1,8 +1,8 @@
 DB_CONFIG = {
-    "host": "dbdev.cs.kent.edu",
-    "user": "your_user",
-    "password": "your_pass",
-    "database": "your_db"
+    "host": "localhost",
+    "user": "root",
+    "password": "",
+    "database": "university"
 }
 
 SECRET_KEY = "something-secret"
