@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+
+<body>
+    <h1>Register</h1>
+    <br>
+
+    {% if courses %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Course ID</th>
+            <th>Section #</th>
+            <th>Semester</th>
+            <th>Year</th>
+            <th>Building</th>
+            <th>room_number</th>
+            <th>time_slot_id</th>
+        </tr>
+
+        {% for row in courses %}
+        <tr>
+            <td>{{ row.course_id }}</td>
+            <td>{{ row.sec_id }}</td>
+            <td>{{ row.semester }}</td>
+            <td>{{ row.year }}</td>
+            <td>{{ row.building }}</td>
+            <td>{{ row.room_number }}</td>
+            <td>{{ row.time_slot_id }}</td>
+            <td>
+                <a href="/student-portal/register/add?course_id={{ row.course_id }}&sec_id={{ row.sec_id }}&semester={{ row.semester }}&year={{ row.year }}">
+                    Register
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No section data found</p>
+    {% endif %}
+
+    <br>
+
+</body>
+
+</html>

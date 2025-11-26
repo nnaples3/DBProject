@@ -14,11 +14,14 @@ def get_db():
 # vars
 
 STUDENT_ID = '24158' # Fixed student ID to mimic being logged in as student
+CURRENT_YEAR = 2022
 
 
 # ------
 
-
+# STUDENT todo
+# register & drop
+# modify personal info (not id)
 
 
 
@@ -30,13 +33,7 @@ def index():
 # Displays links to all functions (register class, drop class, etc)
 @app.route("/student-portal")
 def student_portal():
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("SELECT * FROM student LIMIT 5;")
-    rows = cursor.fetchall()
-
-    return str(rows)
+    return render_template("student/student_portal.html")
 
 
 # Check final grades
@@ -50,7 +47,8 @@ def grades():
 
     return "GRADES: \n" + str(rows)
 
-# Check courses based on semester (what is status?)
+# Check courses based on semester 
+# TODO: if year and semester match the current then its status: active
 @app.route("/student-portal/courses", methods=["GET", "POST"])
 def courses():
     selected_semester = request.form.get("semester")
@@ -87,7 +85,6 @@ def courses():
         semester_rows = semester_rows,
         selected_semester = selected_semester,
     )
-
 
 # Check section information
 @app.route("/student-portal/section")
@@ -129,13 +126,172 @@ def advisor():
     cursor = db.cursor(dictionary=True)
 
     query = """
+        SELECT i.ID, i.name, i.dept_name
+        FROM advisor a
+        JOIN instructor i ON a.i_ID = i.ID
+        WHERE a.s_ID = %s
+    """
+
+    cursor.execute(query, (STUDENT_ID,))
+    advisor_info = cursor.fetchone()
+    return str(advisor_info)
+
+# Registration portal
+@app.route("/student-portal/register")
+def register():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    # List classes
+    # Must join with instructor,
+    # Building
+
+    query = """
+        SELECT * FROM section WHERE semester = 'Spring' and year = 2022
+    """
+
+    cursor.execute(query)
+    courses = cursor.fetchall()
+
+    # Add button
+    return render_template("student/register.html", 
+                           courses=courses)
+
+# Route to actually perform the class add from given url parameters
+@app.route("/student-portal/register/add")
+def add():
+    course_id = request.args.get("course_id")
+    sec_id    = request.args.get("sec_id")
+    semester  = request.args.get("semester")
+    year      = request.args.get("year")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    query = """
+        SELECT *
+        FROM takes
+        WHERE ID = %s
+        AND course_id = %s
+        AND sec_id = %s
+        AND semester = %s
+        AND year = %s
+    """
+
+    cursor.execute(query, (STUDENT_ID, course_id, sec_id, semester, year))
+    exists = cursor.fetchone()
+
+    if exists:
+        return "Already registered for this course"
+    
+    insert_query = """
+        INSERT INTO takes (ID, course_id, sec_id, semester, year)
+        VALUES (%s, %s, %s, %s, %s)
+    """
+    cursor.execute(insert_query, (STUDENT_ID, course_id, sec_id, semester, year))
+    db.commit()
+
+    return "Registration successful!"
+
+# Drop portal
+@app.route("/student-portal/drop")
+def drop():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    query = """
         SELECT s.ID, s.name, t.course_id, t.semester, t.year, t.sec_id, t.grade
         FROM student s
         JOIN takes t ON s.ID = t.ID
         WHERE s.ID = %s
     """
 
-    cursor.execute(query, )
+    cursor.execute(query, (STUDENT_ID,))
+    active_courses = cursor.fetchall()
+
+    print(active_courses)
+
+    return render_template("student/drop.html", courses=active_courses)
+
+# Route to actually perform the drop from given url parameters
+@app.route("/student-portal/drop/remove")
+def remove():
+    course_id = request.args.get("course_id")
+    sec_id    = request.args.get("sec_id")
+    semester  = request.args.get("semester")
+    year      = request.args.get("year")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    query = """
+        SELECT *
+        FROM takes
+        WHERE ID = %s
+        AND course_id = %s
+        AND sec_id = %s
+        AND semester = %s
+        AND year = %s
+    """
+
+    cursor.execute(query, (STUDENT_ID, course_id, sec_id, semester, year))
+    exists = cursor.fetchone()
+
+    if not exists:
+        return "Not registered for this course!"
+    
+    delete_query = """
+        DELETE FROM takes
+        WHERE ID = %s
+        AND course_id = %s
+        AND sec_id = %s
+        AND semester = %s
+        AND year = %s
+    """
+    cursor.execute(delete_query, (STUDENT_ID, course_id, sec_id, semester, year))
+    db.commit()
+
+    return "Drop course success!"
+
+
+# Allow update: Major (pick from list of choices)
+# Allow name change
+@app.route("/student-portal/update-info", methods=["GET", "POST"])
+def update_info():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT ID, name, dept_name 
+        FROM student
+        WHERE ID = %s
+    """, (STUDENT_ID,))
+    student = cursor.fetchone()
+
+    cursor.execute("SELECT dept_name FROM department ORDER BY dept_name;")
+    departments = cursor.fetchall()
+
+    if request.method == "POST":
+        new_name = request.form.get("name")
+        new_major = request.form.get("dept_name")
+
+        update_query = """
+            UPDATE student
+            SET name = %s, dept_name = %s
+            WHERE ID = %s
+        """
+        cursor.execute(update_query, (new_name, new_major, STUDENT_ID))
+        db.commit()
+
+        return render_template(
+            "student/update_success.html",
+            name=new_name,
+            major=new_major
+        )
+
+    return render_template(
+        "student/update_info.html",
+        student=student,
+        departments=departments
+    )
+
 
 # Test route to ensure local connection is working
 @app.route("/testdb")

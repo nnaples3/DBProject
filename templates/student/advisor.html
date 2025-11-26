@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advisor Info</title>
+</head>
+<body>
+    <h1>Results for advisor info</h1>
+    <br>
+
+    {% if advisor %}
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>i_id</th>
+            <th>Name</th>
+            <th>Department</th>
+        </tr>
+
+        {% for row in advisor %}
+        <tr>
+            <td>{{ row.ID }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No section data found</p>
+    {% endif %}
+
+    <br>
+
+</body>
+</html>
