@@ -1,0 +1,21 @@
+<h1>All Departments</h1>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>dept_name</th>
+        <th>Building</th>
+        <th>Budget</th>
+    </tr>
+
+    {% for d in departments %}
+    <tr>
+        <td>{{ d.dept_name }}</td>
+        <td>{{ d.building }}</td>
+        <td>{{ d.budget }}</td>
+        <td>
+            <a href="/admin/department/update?dept_name={{ d.dept_name }}">Edit</a> |
+            <a href="/admin/department/delete?dept_name={{ d.dept_name }}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

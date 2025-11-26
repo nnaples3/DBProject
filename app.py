@@ -14,16 +14,17 @@ def get_db():
 # vars
 
 STUDENT_ID = '24158' # Fixed student ID to mimic being logged in as student
-CURRENT_YEAR = 2022
+#CURRENT_YEAR = 2022
+#ADMIN_MODE = True
+
+# TODO:
+#  Add the necessary checks/redirects for student/instructor/admin mode
+#  More checks to prevent incomplete/error queries
+#  Basic css styling for all templates
 
 
-# ------
 
-# STUDENT todo
-# register & drop
-# modify personal info (not id)
-
-
+################### STUDENT
 
 @app.route("/")
 def index():
@@ -291,6 +292,405 @@ def update_info():
         student=student,
         departments=departments
     )
+
+
+################### ADMIN
+
+# --------- Course CRUD
+
+@app.route("/admin/course")
+def admin_course_home():
+    return render_template("admin/course_home.html")
+
+
+@app.route("/admin/course/list")
+def admin_course_list():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM course ORDER BY course_id;")
+    courses = cursor.fetchall()
+
+    return render_template("admin/course_list.html", courses=courses)
+
+
+@app.route("/admin/course/create", methods=["GET", "POST"])
+def admin_course_create():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    if request.method == "POST":
+        course_id = request.form["course_id"]
+        title = request.form["title"]
+        dept_name = request.form["dept_name"]
+        credits = request.form["credits"]
+
+        query = """
+            INSERT INTO course (course_id, title, dept_name, credits)
+            VALUES (%s, %s, %s, %s)
+        """
+        cursor.execute(query, (course_id, title, dept_name, credits))
+        db.commit()
+
+        return "Course created successfully!"
+
+    cursor.execute("SELECT dept_name FROM department ORDER BY dept_name;")
+    departments = cursor.fetchall()
+
+    return render_template("admin/course_create.html", departments=departments)
+
+
+@app.route("/admin/course/update", methods=["GET", "POST"])
+def admin_course_update():
+    course_id = request.args.get("id")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM course WHERE course_id = %s", (course_id,))
+    course = cursor.fetchone()
+
+    if not course:
+        return "Course not found."
+
+    if request.method == "POST":
+        title = request.form["title"]
+        dept_name = request.form["dept_name"]
+        credits = request.form["credits"]
+
+        query = """
+            UPDATE course
+            SET title = %s, dept_name = %s, credits = %s
+            WHERE course_id = %s
+        """
+        cursor.execute(query, (title, dept_name, credits, course_id))
+        db.commit()
+
+        return "Course updated successfully!"
+
+    cursor.execute("SELECT dept_name FROM department ORDER BY dept_name;")
+    departments = cursor.fetchall()
+
+    return render_template("admin/course_update.html", course=course, departments=departments)
+
+
+@app.route("/admin/course/delete")
+def admin_course_delete():
+    course_id = request.args.get("id")
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("DELETE FROM course WHERE course_id = %s", (course_id,))
+    db.commit()
+
+    return "Course deleted."
+
+# --------- Section CRUD
+
+@app.route("/admin/section")
+def admin_section_home():
+    return render_template("admin/section_home.html")
+
+@app.route("/admin/section/list")
+def admin_section_list():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM section ORDER BY course_id;")
+    sections = cursor.fetchall()
+
+    return render_template("admin/section_list.html", sections=sections)
+
+@app.route("/admin/section/create", methods=["GET", "POST"])
+def admin_section_create():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    if request.method == "POST":
+        course_id    = request.form["course_id"]
+        sec_id       = request.form["sec_id"]
+        semester     = request.form["semester"]
+        year         = request.form["year"]
+        building     = request.form["building"]
+        room_number  = request.form["room_number"]
+        time_slot_id = request.form["time_slot_id"]
+
+        query = """
+            INSERT INTO section (course_id, sec_id, semester, year, building, room_number, time_slot_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (course_id, sec_id, semester, year, building, room_number, time_slot_id))
+        db.commit()
+
+        return "Section created successfully!"
+
+
+    return render_template("admin/section_create.html")
+
+@app.route("/admin/section/update", methods=["GET", "POST"])
+def admin_section_update():
+    course_id = request.args.get("course_id")
+    sec_id = request.args.get("sec_id")
+    semester = request.args.get("semester")
+    year = request.args.get("year")
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    select_query = """
+        SELECT * FROM section
+        WHERE course_id = %s
+        AND sec_id = %s
+        AND semester = %s
+        AND year = %s
+    """
+    cursor.execute(select_query, (course_id, sec_id, semester, year))
+    section = cursor.fetchone()
+    if not section:
+        return "Section not found."
+
+    if request.method == "POST":
+        new_course_id    = request.form["course_id"]
+        new_sec_id       = request.form["sec_id"]
+        new_semester     = request.form["semester"]
+        new_year         = request.form["year"]
+        building         = request.form["building"]
+        room_number      = request.form["room_number"]
+        time_slot_id     = request.form["time_slot_id"]
+
+        update_query = """
+            UPDATE section
+            SET course_id = %s,
+                sec_id = %s,
+                semester = %s,
+                year = %s,
+                building = %s,
+                room_number = %s,
+                time_slot_id = %s
+            WHERE course_id = %s
+                AND sec_id = %s
+                AND semester = %s
+                AND year = %s
+        """
+
+        cursor.execute(update_query, (
+            new_course_id, new_sec_id, new_semester, new_year,
+            building, room_number, time_slot_id,
+            course_id, sec_id, semester, year
+        ))
+        db.commit()
+
+        return "Section updated successfully!"
+
+    return render_template("admin/section_update.html", section=section)
+
+@app.route("/admin/section/delete")
+def admin_section_delete():
+    course_id = request.args.get("course_id")
+    sec_id = request.args.get("sec_id")
+    semester = request.args.get("semester")
+    year = request.args.get("year")
+    db = get_db()
+    cursor = db.cursor()
+
+    delete_query = """
+        DELETE FROM section WHERE course_id = %s
+        AND sec_id = %s
+        AND semester = %s
+        AND year = %s
+    """
+    cursor.execute(delete_query, (course_id, sec_id, semester, year))
+    db.commit()
+
+    return "Section deleted."
+
+
+# --------- Classroom CRUD
+
+@app.route("/admin/classroom")
+def admin_classroom_home():
+    return render_template("admin/classroom_home.html")
+
+@app.route("/admin/classroom/list")
+def admin_classroom_list():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM classroom ORDER BY building;")
+    classrooms = cursor.fetchall()
+
+    return render_template("admin/classroom_list.html", classrooms=classrooms)
+
+@app.route("/admin/classroom/create", methods=["GET", "POST"])
+def admin_classroom_create():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    if request.method == "POST":
+        building    = request.form["building"]
+        room_number = request.form["room_number"]
+        capacity     = request.form["capacity"]
+
+        query = """
+            INSERT INTO classroom (building, room_number, capacity)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (building, room_number, capacity))
+        db.commit()
+
+        return "Classroom created successfully!"
+
+
+    return render_template("admin/classroom_create.html")
+
+@app.route("/admin/classroom/update", methods=["GET", "POST"])
+def admin_classroom_update():
+    building = request.args.get("building")
+    room_number = request.args.get("room_number")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    select_query = """
+        SELECT * FROM classroom
+        WHERE building = %s
+        AND room_number = %s
+    """
+    cursor.execute(select_query, (building, room_number))
+    classroom = cursor.fetchone()
+    if not classroom:
+        return "Classroom not found."
+
+    if request.method == "POST":
+        new_building    = request.form["building"]
+        new_room_number = request.form["room_number"]
+        capacity     = request.form["capacity"]
+
+        update_query = """
+            UPDATE classroom
+            SET building = %s,
+                room_number = %s,
+                capacity = %s
+            WHERE building = %s
+                AND room_number = %s
+        """
+
+        cursor.execute(update_query, (
+            new_building, new_room_number, capacity, building, room_number
+        ))
+        db.commit()
+
+        return "Classroom updated successfully!"
+
+    return render_template("admin/classroom_update.html", classroom=classroom)
+
+@app.route("/admin/classroom/delete")
+def admin_classroom_delete():
+    building = request.args.get("building")
+    room_number = request.args.get("room_number")
+    db = get_db()
+    cursor = db.cursor()
+
+    delete_query = """
+        DELETE FROM classroom WHERE building = %s
+        AND room_number = %s
+    """
+    cursor.execute(delete_query, (building, room_number))
+    db.commit()
+
+    return "Classroom deleted."
+
+
+# --------- Department CRUD
+
+@app.route("/admin/department")
+def admin_department_home():
+    return render_template("admin/department_home.html")
+
+@app.route("/admin/department/list")
+def admin_department_list():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM department ORDER BY budget;")
+    departments = cursor.fetchall()
+
+    return render_template("admin/department_list.html", departments=departments)
+
+@app.route("/admin/department/create", methods=["GET", "POST"])
+def admin_department_create():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    if request.method == "POST":
+        dept_name    = request.form["dept_name"]
+        building     = request.form["building"]
+        budget       = request.form["budget"]
+
+        query = """
+            INSERT INTO department (dept_name, building, budget)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (dept_name, building, budget))
+        db.commit()
+
+        return "Department created successfully!"
+
+
+    return render_template("admin/department_create.html")
+
+@app.route("/admin/department/update", methods=["GET", "POST"])
+def admin_department_update():
+    dept_name = request.args.get("dept_name")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    select_query = """
+        SELECT * FROM department
+        WHERE dept_name = %s
+    """
+    cursor.execute(select_query, (dept_name,))
+    department = cursor.fetchone()
+    if not department:
+        return "Department not found."
+
+    if request.method == "POST":
+        new_dept_name    = request.form["dept_name"]
+        building   = request.form["building"]
+        budget     = request.form["budget"]
+
+        update_query = """
+            UPDATE department
+            SET dept_name = %s,
+                building = %s,
+                budget = %s
+            WHERE dept_name = %s
+        """
+
+        cursor.execute(update_query, (
+            new_dept_name, building, budget, dept_name
+        ))
+        db.commit()
+
+        return "Department updated successfully!"
+
+    return render_template("admin/department_update.html", department=department)
+
+@app.route("/admin/department/delete")
+def admin_department_delete():
+    dept_name = request.args.get("dept_name")
+    db = get_db()
+    cursor = db.cursor()
+
+    delete_query = """
+        DELETE FROM department WHERE dept_name = %s
+    """
+    cursor.execute(delete_query, (dept_name,))
+    db.commit()
+
+    return "Department deleted."
+
+
+
 
 
 # Test route to ensure local connection is working

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Classroom</title>
+</head>
+<body>
+
+    <h1>Update Classroom</h1>
+
+    <form method="POST">
+
+        <label>Building:</label><br>
+        <input type="text" name="building" value="{{ classroom.building }}"><br><br>
+
+        <label>Room Number:</label><br>
+        <input type="text" name="room_number" value="{{ classroom.room_number }}"><br><br>
+
+        <label>Capacity:</label><br>
+        <input type="text" name="capacity" value="{{ classroom.capacity }}"><br><br>
+
+        <button type="submit">Update Classroom</button>
+    </form>
+
+</body>
+</html>

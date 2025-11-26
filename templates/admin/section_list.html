@@ -1,0 +1,29 @@
+<h1>All Sections</h1>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Course ID</th>
+        <th>Section #</th>
+        <th>Semester</th>
+        <th>Year</th>
+        <th>Building</th>
+        <th>room_number</th>
+        <th>time_slot_id</th>
+    </tr>
+
+    {% for s in sections %}
+    <tr>
+        <td>{{ s.course_id }}</td>
+        <td>{{ s.sec_id }}</td>
+        <td>{{ s.semester }}</td>
+        <td>{{ s.year }}</td>
+        <td>{{ s.building }}</td>
+        <td>{{ s.room_number }}</td>
+        <td>{{ s.time_slot_id }}</td>
+        <td>
+            <a href="/admin/section/update?course_id={{ s.course_id }}&sec_id={{ s.sec_id }}&semester={{ s.semester }}&year={{ s.year }}">Edit</a> |
+            <a href="/admin/section/delete?course_id={{ s.course_id }}&sec_id={{ s.sec_id }}&semester={{ s.semester }}&year={{ s.year }}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

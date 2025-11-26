@@ -1,0 +1,21 @@
+<h1>All Classrooms</h1>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Building</th>
+        <th>Room Number</th>
+        <th>Capacity</th>
+    </tr>
+
+    {% for c in classrooms %}
+    <tr>
+        <td>{{ c.building }}</td>
+        <td>{{ c.room_number }}</td>
+        <td>{{ c.capacity }}</td>
+        <td>
+            <a href="/admin/classroom/update?building={{ c.building }}&room_number={{ c.room_number }}">Edit</a> |
+            <a href="/admin/classroom/delete?building={{ c.building }}&room_number={{ c.room_number }}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

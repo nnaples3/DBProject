@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Section</title>
+</head>
+<body>
+
+    <h1>Update Section</h1>
+
+    <form method="POST">
+
+        <label>Course ID:</label><br>
+        <input type="text" name="course_id" value="{{ section.course_id }}"><br><br>
+
+        <label>Section #:</label><br>
+        <input type="text" name="sec_id" value="{{ section.sec_id }}"><br><br>
+
+        <label>Semester:</label><br>
+        <input type="text" name="semester" value="{{ section.semester }}"><br><br>
+
+        <label>Year:</label><br>
+        <input type="text" name="year" value="{{ section.year }}"><br><br>
+
+        <label>Building:</label><br>
+        <input type="text" name="building" value="{{ section.building }}"><br><br>
+
+        <label>Room Number:</label><br>
+        <input type="text" name="room_number" value="{{ section.room_number }}"><br><br>
+
+        <label>Time Slot ID:</label><br>
+        <input type="text" name="time_slot_id" value="{{ section.time_slot_id }}"><br><br>
+
+        <button type="submit">Update Section</button>
+    </form>
+
+</body>
+</html>
