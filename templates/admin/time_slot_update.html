@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Time Slot</title>
+</head>
+<body>
+
+    <h1>Update Time Slot</h1>
+
+    <form method="POST">
+
+        <label>Time Slot ID:</label><br>
+        <input type="text" name="time_slot_id" value="{{ time_slot.time_slot_id }}"><br><br>
+
+        <label>Day:</label><br>
+        <input type="text" name="day" value="{{ time_slot.day }}"><br><br>
+
+        <label>Start hr:</label><br>
+        <input type="text" name="start_hr" value="{{ time_slot.start_hr }}"><br><br>
+
+        <label>Start min:</label><br>
+        <input type="text" name="start_min" value="{{ time_slot.start_min }}"><br><br>
+
+        <label>End hr:</label><br>
+        <input type="text" name="end_hr" value="{{ time_slot.end_hr }}"><br><br>
+
+        <label>End min:</label><br>
+        <input type="text" name="end_min" value="{{ time_slot.end_min }}"><br><br>
+
+        <button type="submit">Update Time Slot</button>
+    </form>
+
+</body>
+</html>

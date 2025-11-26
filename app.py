@@ -19,7 +19,7 @@ STUDENT_ID = '24158' # Fixed student ID to mimic being logged in as student
 
 # TODO:
 #  Add the necessary checks/redirects for student/instructor/admin mode
-#  More checks to prevent incomplete/error queries
+#  More checks to prevent incomplete/error queries (deleting department with instructors in it)
 #  Basic css styling for all templates
 
 
@@ -688,6 +688,110 @@ def admin_department_delete():
     db.commit()
 
     return "Department deleted."
+
+# --------- Time Slot CRUD
+
+@app.route("/admin/time_slot")
+def admin_time_slot_home():
+    return render_template("admin/time_slot_home.html")
+
+@app.route("/admin/time_slot/list")
+def admin_time_slot_list():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM time_slot ORDER BY start_hr;")
+    time_slots = cursor.fetchall()
+
+    return render_template("admin/time_slot_list.html", time_slots=time_slots)
+
+@app.route("/admin/time_slot/create", methods=["GET", "POST"])
+def admin_time_slot_create():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    if request.method == "POST":
+        time_slot_id    = request.form["time_slot_id"]
+        day             = request.form["day"]
+        start_hr        = request.form["start_hr"]
+        start_min       = request.form["start_min"]
+        end_hr          = request.form["end_hr"]
+        end_min         = request.form["end_min"]
+
+        query = """
+            INSERT INTO time_slot (time_slot_id, day, start_hr, start_min, end_hr, end_min)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (time_slot_id, day, start_hr, start_min, end_hr, end_min))
+        db.commit()
+
+        return "Time Slot created successfully!"
+
+
+    return render_template("admin/time_slot_create.html")
+
+
+@app.route("/admin/time_slot/update", methods=["GET", "POST"])
+def admin_time_slot_update():
+    time_slot_id = request.args.get("time_slot_id")
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    select_query = """
+        SELECT * FROM time_slot
+        WHERE time_slot_id = %s
+    """
+    cursor.execute(select_query, (time_slot_id,))
+    time_slot = cursor.fetchone()
+    if not time_slot:
+        return "Time Slot not found."
+
+    if request.method == "POST":
+        new_time_slot_id    = request.form["time_slot_id"]
+        day   = request.form["day"]
+        start_hr     = request.form["start_hr"]
+        start_min     = request.form["start_min"]
+        end_hr     = request.form["end_hr"]
+        end_min     = request.form["end_min"]
+
+        update_query = """
+            UPDATE time_slot
+            SET time_slot_id = %s,
+                day = %s,
+                start_hr = %s,
+                start_min = %s,
+                end_hr = %s,
+                end_min = %s
+            WHERE time_slot_id = %s
+        """
+
+        cursor.execute(update_query, (
+            new_time_slot_id, day, start_hr, start_min, end_hr, end_min, time_slot_id
+        ))
+        db.commit()
+
+        return "Time Slot updated successfully!"
+
+    return render_template("admin/time_slot_update.html", time_slot=time_slot)
+
+@app.route("/admin/time_slot/delete")
+def admin_time_slot_delete():
+    time_slot_id = request.args.get("time_slot_id")
+    db = get_db()
+    cursor = db.cursor()
+
+    delete_query = """
+        DELETE FROM time_slot WHERE time_slot_id = %s
+    """
+    cursor.execute(delete_query, (time_slot_id,))
+    db.commit()
+
+    return "Time Slot deleted."
+
+
+# --------- Instructor CRUD
+
 
 
 

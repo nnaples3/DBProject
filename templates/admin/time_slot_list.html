@@ -1,0 +1,27 @@
+<h1>All Time Slots</h1>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>time_slot_id</th>
+        <th>day</th>
+        <th>start_hr</th>
+        <th>start_min</th>
+        <th>end_hr</th>
+        <th>end_min</th>
+    </tr>
+
+    {% for t in time_slots %}
+    <tr>
+        <td>{{ t.time_slot_id }}</td>
+        <td>{{ t.day }}</td>
+        <td>{{ t.start_hr }}</td>
+        <td>{{ t.start_min }}</td>
+        <td>{{ t.end_hr }}</td>
+        <td>{{ t.end_min }}</td>
+        <td>
+            <a href="/admin/time_slot/update?time_slot_id={{ t.time_slot_id }}">Edit</a> |
+            <a href="/admin/time_slot/delete?time_slot_id={{ t.time_slot_id }}">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
