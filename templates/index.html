@@ -3,11 +3,18 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>HTML 5 Boilerplate</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Student Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   </head>
   <body>
-    <script src="index.js"></script>
+    <header>
+      <h1>Welcome to the Student Portal</h1>
+    </header>
+
+    <main>
+      <p>Student ID: 24158</p>
+      <button>Test Button</button>
+    </main>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
   </body>
 </html>
