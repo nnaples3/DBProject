@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, session
 import mysql.connector
 
 app = Flask(__name__)
+app.secret_key = "secret_key_test"
 
 def get_db():
     return mysql.connector.connect(
@@ -13,7 +14,6 @@ def get_db():
 
 # vars
 
-STUDENT_ID = '24158' # Fixed student ID to mimic being logged in as student
 #CURRENT_YEAR = 2022
 #ADMIN_MODE = True
 
@@ -21,6 +21,54 @@ STUDENT_ID = '24158' # Fixed student ID to mimic being logged in as student
 #  Add the necessary checks/redirects for student/instructor/admin mode
 #  More checks to prevent incomplete/error queries (deleting department with instructors in it)
 #  Basic css styling for all templates
+
+# Login setup instructions
+# 
+
+
+################### LOGIN
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+
+        # Compare password using MySQL SHA2 hashing
+        query = """
+            SELECT username, role, linked_id
+            FROM users
+            WHERE username = %s
+            AND password_hash = SHA2(%s, 256)
+        """
+        cursor.execute(query, (username, password))
+        user = cursor.fetchone()
+
+        if not user:
+            return "Invalid username or password."
+
+        # Store session info
+        session["username"] = user["username"]
+        session["role"] = user["role"]
+        session["linked_id"] = user["linked_id"]
+
+        # Redirect based on role
+        if user["role"] == "student":
+            return redirect("/student-portal")
+        elif user["role"] == "instructor":
+            return redirect("/instructor-portal")
+        elif user["role"] == "admin":
+            return redirect("/admin/course")
+
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login")
 
 
 
@@ -34,6 +82,10 @@ def index():
 # Displays links to all functions (register class, drop class, etc)
 @app.route("/student-portal")
 def student_portal():
+    if session.get("role") != "student":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
     return render_template("student/student_portal.html")
 
 
@@ -42,6 +94,10 @@ def student_portal():
 def grades():
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
 
     cursor.execute("SELECT * FROM takes WHERE ID = %s;", (STUDENT_ID,))
     rows = cursor.fetchall()
@@ -55,6 +111,10 @@ def courses():
     selected_semester = request.form.get("semester")
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
 
     query = """
         SELECT s.ID, s.name, t.course_id, t.semester, t.year, t.sec_id, t.grade
@@ -96,8 +156,9 @@ def section():
     year      = request.args.get("year")
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
 
-    print(sec_id)
 
     query = """
         SELECT s.building, s.room_number, s.time_slot_id
@@ -110,7 +171,6 @@ def section():
 
     cursor.execute(query, (course_id, sec_id, semester, year))
     section_info = cursor.fetchall()
-    print(section_info)
     return render_template(
         "student/section.html",
         section_info = section_info,
@@ -125,6 +185,10 @@ def section():
 def advisor():
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
 
     query = """
         SELECT i.ID, i.name, i.dept_name
@@ -142,6 +206,8 @@ def advisor():
 def register():
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
     # List classes
     # Must join with instructor,
     # Building
@@ -166,6 +232,10 @@ def add():
     year      = request.args.get("year")
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
 
     query = """
         SELECT *
@@ -197,6 +267,10 @@ def add():
 def drop():
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
 
     query = """
         SELECT s.ID, s.name, t.course_id, t.semester, t.year, t.sec_id, t.grade
@@ -221,6 +295,10 @@ def remove():
     year      = request.args.get("year")
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
 
     query = """
         SELECT *
@@ -258,6 +336,10 @@ def remove():
 def update_info():
     db = get_db()
     cursor = db.cursor(dictionary=True)
+    if session.get("role") != "student":
+        return redirect("/login")
+    
+    STUDENT_ID = session["linked_id"]
 
     cursor.execute("""
         SELECT ID, name, dept_name 
